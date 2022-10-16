@@ -88,7 +88,7 @@
     >
     <p>Refresh to see changes</p>
     {#each data as d}
-      <p>{d.name.slice(0, -4)} by {d.display}</p>
+      <p>{d.name} by {d.display}</p>
       {#await getDownloadURL(d.ref)}
         <p>loading...</p>
       {:then url}

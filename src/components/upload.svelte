@@ -22,6 +22,9 @@
   let preview = false;
   // add variable for the file upload input
   let fileUploadInput: HTMLInputElement;
+  // create variable for the name input's value
+  let value = "";
+  // add variable for files array
   let files: { name: string; path: string }[] = [];
   // add variable which holds all the files data
   let filesElements: {
@@ -53,11 +56,15 @@
         // add files data to firestore
         // start the upload task
         const uploadTask = uploadBytesResumable(refFile, file);
+
+        if (value === "") {
+          value = file.name;
+        }
         // push the elements to the files array
         filesElements.push({
           path,
           ref: refFile,
-          name: file.name,
+          name: value,
           display: $user.displayName,
         });
         // get upload speed and percent done
@@ -66,12 +73,14 @@
           const progress: number =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           if (progress === 100) {
+            console.log(value);
             addDoc(collection(db, "files"), {
               uid: $user.uid,
               path,
-              name: file.name,
+              name: value,
               display: $user.displayName,
             });
+            value = "";
           }
           // add the progress to the files array
           filesElements[i].progress = progress;
@@ -137,6 +146,10 @@
     accept="image/*"
     bind:this={fileUploadInput}
   />
+  <label for="name">
+    name:
+    <input type="text" name="" id="name" bind:value />
+  </label>
   <button on:click={submit}>Submit</button>
   <!-- Loop through the files and set the name, link, and progress if available-->
   {#each filesElements as uploadFile}
