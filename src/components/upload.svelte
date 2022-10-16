@@ -13,9 +13,11 @@
     uploadBytesResumable,
     getDownloadURL,
   } from "firebase/storage";
-  import { storage, db } from "../firebase";
+  import { authState } from "rxfire/auth";
+  import { storage, db, auth } from "../firebase";
+  export let upload = true;
   // add prop user
-  export let user: { subscribe(): void };
+  const user: { subscribe(): void } = authState(auth);
   // add variable to show images
   let preview = false;
   // add variable for the file upload input
@@ -27,6 +29,7 @@
     ref: StorageReference;
     name: string;
     progress?: number;
+    display: string;
   }[] = [];
   // set the file array to all of the files
   async function getFiles() {
@@ -55,6 +58,7 @@
           path,
           ref: refFile,
           name: file.name,
+          display: $user.displayName,
         });
         // get upload speed and percent done
         uploadTask.on("state_changed", (snapshot) => {
@@ -66,6 +70,7 @@
               uid: $user.uid,
               path,
               name: file.name,
+              display: $user.displayName,
             });
           }
           // add the progress to the files array
@@ -105,6 +110,7 @@
         path,
         ref: refFile,
         name: files[index].name,
+        display: $user.displayName,
       });
       index++;
     });
@@ -113,11 +119,24 @@
   }
   // call getFiles to get the files
   getFiles();
+  console.log(filesElements.length);
 </script>
 
 <main>
+  <!-- button to go back to homepage -->
+  <button
+    on:click={() => {
+      upload = false;
+    }}>Back</button
+  >
   <h1>Your Files:</h1>
-  <input type="file" id="input" multiple bind:this={fileUploadInput} />
+  <input
+    type="file"
+    id="input"
+    multiple
+    accept="image/*"
+    bind:this={fileUploadInput}
+  />
   <button on:click={submit}>Submit</button>
   <!-- Loop through the files and set the name, link, and progress if available-->
   {#each filesElements as uploadFile}
