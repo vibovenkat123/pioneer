@@ -42,28 +42,32 @@
         // get file variable
         const file = fileUploadInput.files[i];
         // get reference to file in firebase storage
-        const path = `files/${$user.uid.substring(0, 15)}${file.name}`;
+        const path = `files/${Date.now() * Math.random()}${$user.uid.substring(
+          0,
+          15
+        )}${file.name}`;
         const refFile = ref(storage, path);
         // add files data to firestore
-        addDoc(collection(db, "files"), {
-          uid: $user.uid,
-          path: `files/${$user.uid.substring(0, 15)}${file.name}`,
-          name: file.name,
-        });
         // start the upload task
         const uploadTask = uploadBytesResumable(refFile, file);
-        const withoutExtension = file.name.substring(0, file.name.length - 4);
         // push the elements to the files array
         filesElements.push({
           path,
           ref: refFile,
-          name: withoutExtension.slice(15),
+          name: file.name,
         });
         // get upload speed and percent done
         uploadTask.on("state_changed", (snapshot) => {
           // get the percent done
-          const progress =
+          const progress: number =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          if (progress === 100) {
+            addDoc(collection(db, "files"), {
+              uid: $user.uid,
+              path,
+              name: file.name,
+            });
+          }
           // add the progress to the files array
           filesElements[i].progress = progress;
         });
