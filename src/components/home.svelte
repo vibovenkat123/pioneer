@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { reload } from "firebase/auth";
   import { collection, getDocs, query, where } from "firebase/firestore";
   import {
     getDownloadURL,
@@ -62,15 +63,8 @@
     return data;
   }
   function copy(text: string) {
-    // set text context and copy link
-    const tooltip = document.getElementById("tooltip");
-    tooltip!.innerHTML = "Copied!";
+    // copy link
     navigator.clipboard.writeText(text);
-  }
-  function resetCopy() {
-    // reset text context
-    const tooltip = document.getElementById("tooltip");
-    tooltip!.innerHTML = "Copy To Clipboard";
   }
   getFiles();
 </script>
@@ -81,74 +75,71 @@
     <Upload bind:upload />
   {:else}
     <!-- If the user wants to browse images -->
-    <button
-      on:click={() => {
-        upload = true;
-      }}>Upload</button
-    >
-    <p>Refresh to see changes</p>
-    {#each data as d}
-      <p>{d.name} by {d.display}</p>
-      {#await getDownloadURL(d.ref)}
-        <p>loading...</p>
-      {:then url}
-        <img src={url} alt="" width="200" />
-      {/await}
-      {#await getDownloadURL(d.ref) then url}
-        <div class="tooltip">
-          <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-          <button
-            on:click={() => {
-              copy(url);
-            }}
-            on:mouseout={resetCopy}
-          >
-            <span class="tooltiptext" id="tooltip">Copy To Clipboard</span>
-            Copy
-          </button>
+    <div class="flex items-center flex-col">
+      <div class="flex items-center flex-col mb-3">
+        <button
+          on:click={() => {
+            upload = true;
+          }}
+          class="btn btn-outline mb-3 mt-3">Upload</button
+        >
+        <button
+          class="btn btn-outline btn-info"
+          on:click={() => {
+            location.reload();
+          }}>Refresh to see changes</button
+        >
+      </div>
+      <div class="flex justify-center w-3/4">
+        <div class="grid-container">
+          {#each data as d}
+            <div
+              class="card-compact card bg-black text-white p-3 mr-5 border-2 border-gray-800"
+            >
+              {#await getDownloadURL(d.ref)}
+                <p>loading...</p>
+              {:then url}
+                <figure>
+                  <img src={url} alt="" class="image-full rounded-md" />
+                </figure>
+              {/await}
+              <div class="card-body">
+                <p class="card-title">{d.name}</p>
+                <p class="text-lg">by {d.display}</p>
+                {#await getDownloadURL(d.ref) then url}
+                  <div class="flex w-full justify-between">
+                    <div class="tooltip" data-tip="Copy To Clipboard">
+                      <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                      <button
+                        on:click={() => {
+                          copy(url);
+                        }}
+                        class=" btn btn-outline btn-primary text-center"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      class="btn tooltip btn-outline flex items-center"
+                      data-tip="Download">Download</a
+                    >
+                  </div>
+                {/await}
+              </div>
+            </div>
+          {/each}
         </div>
-        <a href={url} target="_blank" rel="noreferrer">Download</a>
-      {/await}
-    {/each}
+      </div>
+    </div>
   {/if}
 </main>
 
 <style>
-  .tooltip {
-    position: relative;
-    display: inline-block;
-  }
-
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 140px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 150%;
-    left: 50%;
-    margin-left: -75px;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
-  }
-
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 </style>

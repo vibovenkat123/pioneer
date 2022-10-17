@@ -18,8 +18,6 @@
   export let upload = true;
   // add prop user
   const user: { subscribe(): void } = authState(auth);
-  // add variable to show images
-  let preview = false;
   // add variable for the file upload input
   let fileUploadInput: HTMLInputElement;
   // create variable for the name input's value
@@ -35,9 +33,6 @@
     display: string;
   }[] = [];
   // set the file array to all of the files
-  async function getFiles() {
-    filesElements = await allFiles();
-  }
   // submit function
   async function submit() {
     // get all files from the input
@@ -88,94 +83,56 @@
       }
     }
   }
-  // function to get all files
-  async function allFiles() {
-    // get reference to files directory
-    const dir = ref(storage, "files");
-    // get all files
-    const allFiles = await listAll(dir);
-    // get the files with the same user id
-    if ($user) {
-      // query the files
-      const queryFiles = query(
-        collection(db, "files"),
-        where("uid", "==", $user.uid)
-      );
-      const snapshot = await getDocs(queryFiles);
-      // push data to a files from firestore array
-      snapshot.forEach((n) => {
-        files.push({ name: n.data().name, path: n.data().path });
-      });
-    }
-    // loop through files
-    let index = 0;
-    allFiles.items.forEach(async () => {
-      // get path
-      const path = files[index].path;
-      // get reference
-      const refFile = ref(storage, path);
-      // push to the files array
-      filesElements.push({
-        path,
-        ref: refFile,
-        name: files[index].name,
-        display: $user.displayName,
-      });
-      index++;
-    });
-    // return the array
-    return filesElements;
-  }
-  // call getFiles to get the files
-  getFiles();
-  console.log(filesElements.length);
 </script>
 
 <main>
-  <!-- button to go back to homepage -->
-  <button
-    on:click={() => {
-      upload = false;
-    }}>Back</button
-  >
-  <h1>Your Files:</h1>
-  <input
-    type="file"
-    id="input"
-    multiple
-    accept="image/*"
-    bind:this={fileUploadInput}
-  />
-  <label for="name">
-    name:
-    <input type="text" name="" id="name" bind:value />
-  </label>
-  <button on:click={submit}>Submit</button>
-  <!-- Loop through the files and set the name, link, and progress if available-->
-  {#each filesElements as uploadFile}
-    <div>
-      <p>{uploadFile.name}</p>
-      {#if uploadFile.progress}
-        <p>{uploadFile.progress}%</p>
-      {/if}
-    </div>
-  {/each}
-  <!-- have a button that previews the images -->
-  <button
-    on:click={() => {
-      preview = !preview;
-    }}>Preview</button
-  >
-  {#if preview}
-    {#each filesElements as uploadFile}
-      <div>
-        <p>{uploadFile.name}</p>
-        {#await getDownloadURL(uploadFile.ref)}
-          <p>loading...</p>
-        {:then url}
-          <img src={url} alt="" width="200" />
-        {/await}
-      </div>
-    {/each}
-  {/if}
+  <div class="flex h-full w-full justify-center items-center flex-col fixed">
+    <!-- button to go back to homepage -->
+    <button
+      on:click={() => {
+        upload = false;
+      }}
+      class="btn btn-outline btn-primary mb-5">Back</button
+    >
+    <h1 class="text-3xl mb-5">Your Files:</h1>
+    <label
+      for="custom"
+      class="btn btn-outline btn-secondary hover:cursor-pointer mb-5"
+    >
+      <input
+        type="file"
+        id="input"
+        multiple
+        class="hover:cursor-pointer rounded-md"
+        accept="image/*"
+        bind:this={fileUploadInput}
+      />
+    </label>
+    <label for="name">
+      <input
+        type="text"
+        name=""
+        id="name"
+        bind:value
+        placeholder="name"
+        class="input input-bordered w-full max-w-xs mb-5 input-accent"
+      />
+    </label>
+    <button on:click={submit} class="btn btn-success btn-outline">Submit</button
+    >
+    <!-- Loop through the files and set the name, link, and progress if available-->
+    <ol class="menu bg-base-200 p-4 rounded-md mt-5 mb-5 list-decimal">
+      <li class="menu-title"><span>Images</span></li>
+      {#each filesElements as uploadFile}
+        <li>
+          <div>
+            <p>{uploadFile.name}</p>
+            {#if uploadFile.progress}
+              <p>{uploadFile.progress}%</p>
+            {/if}
+          </div>
+        </li>
+      {/each}
+    </ol>
+  </div>
 </main>

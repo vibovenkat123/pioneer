@@ -9,9 +9,11 @@
 
 <main>
   <!-- if the user is signed in, go to upload page, else go to sign in page -->
-  {#if $user}
-    <Home />
-  {:else}
-    <SignIn />
-  {/if}
+  <div class="bg-black w-full h-full absolute overflow-scroll text-white">
+    {#if $user}
+      <Home />
+    {:else}
+      <SignIn />
+    {/if}
+  </div>
 </main>
