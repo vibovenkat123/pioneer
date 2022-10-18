@@ -2,8 +2,6 @@
   import {
     collection,
     deleteDoc,
-    doc,
-    DocumentReference,
     getDocs,
     query,
     where,
@@ -49,7 +47,7 @@
     // get all files
     const allFiles = await listAll(dir);
     let index = 0;
-    allFiles.items.forEach(async (i) => {
+    for (const i of allFiles.items) {
       if ($user) {
         // query the files
         const queryFiles = query(
@@ -83,7 +81,7 @@
         },
       ];
       index++;
-    });
+    }
     // return the data
     return data;
   }
@@ -92,8 +90,8 @@
     navigator.clipboard.writeText(text);
   }
   async function deleteImage(d: dataObj) {
-    // delete the refrence from the storage bucket
-    deleteObject(d.ref);
+    // delete the reference from the storage bucket
+    await deleteObject(d.ref);
     // query and delete the document with the same path in firestore
     const q = query(collection(db, "files"), where("path", "==", d.path));
     const querySnapshot = await getDocs(q);
@@ -101,7 +99,7 @@
     querySnapshot.forEach((doc) => {
       docRef = doc.ref;
     });
-    deleteDoc(docRef);
+    await deleteDoc(docRef);
     // delete the item from the array
     let index = data.indexOf(d);
     if (index > -1) {
@@ -162,7 +160,7 @@
                       </button>
                     </div>
                     {#if $user !== null}
-                      {#if $user.uid == d.uid}
+                      {#if $user.uid === d.uid}
                         <div class="tooltip" data-tip="Delete Item">
                           <button
                             class="btn btn-error btn-outline mr-3"

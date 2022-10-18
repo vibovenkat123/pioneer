@@ -3,7 +3,7 @@
   import { auth, provider } from "../firebase";
   // add function to sign in
   async function signIn() {
-    signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider);
   }
 </script>
 

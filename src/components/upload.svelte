@@ -2,16 +2,11 @@
   import {
     addDoc,
     collection,
-    getDocs,
-    query,
-    where,
   } from "firebase/firestore";
   import {
     ref,
-    listAll,
     type StorageReference,
     uploadBytesResumable,
-    getDownloadURL,
   } from "firebase/storage";
   import { authState } from "rxfire/auth";
   import { storage, db, auth } from "../firebase";
@@ -23,7 +18,6 @@
   // create variable for the name input's value
   let value = "";
   // add variable for files array
-  let files: { name: string; path: string }[] = [];
   // add variable which holds all the files data
   let filesElements: {
     path: string;
@@ -32,7 +26,7 @@
     progress?: number;
     display: string;
   }[] = [];
-  // set the file array to all of the files
+  // set the file array to all the files
   // submit function
   async function submit() {
     // get all files from the input
