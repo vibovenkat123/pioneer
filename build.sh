@@ -3,3 +3,4 @@ git add .
 now=$(date)
 git commit -m 'deploy $now'
 git push -f origin main
+git reset --hard origin/pioneer-dev
