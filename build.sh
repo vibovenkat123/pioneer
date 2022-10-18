@@ -1,3 +1,4 @@
+git checkout pioneer-dev
 npx tailwindcss -o src/app.css --minify
 git add .
 now=$(date)
