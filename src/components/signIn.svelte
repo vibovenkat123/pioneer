@@ -8,5 +8,9 @@
 </script>
 
 <main>
-  <button on:click={signIn}>Sign In</button>
+  <div class="grid place-items-center h-screen">
+    <button on:click={signIn} class="btn btn-outline btn-primary"
+      >Sign In</button
+    >
+  </div>
 </main>

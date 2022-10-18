@@ -86,7 +86,9 @@
 </script>
 
 <main>
-  <div class="flex h-full w-full justify-center items-center flex-col fixed">
+  <div
+    class="flex h-full w-full justify-center items-center flex-col absolute overflow-scroll"
+  >
     <!-- button to go back to homepage -->
     <button
       on:click={() => {
