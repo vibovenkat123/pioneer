@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { reload } from "firebase/auth";
-  import { collection, getDocs, query, where } from "firebase/firestore";
+  import {
+    collection,
+    deleteDoc,
+    doc,
+    DocumentReference,
+    getDocs,
+    query,
+    where,
+  } from "firebase/firestore";
   import {
     getDownloadURL,
     listAll,
     ref,
     type StorageReference,
+    deleteObject,
   } from "firebase/storage";
   import { authState } from "rxfire/auth";
   import { auth, db, storage } from "../firebase";
@@ -17,7 +25,16 @@
     ref: StorageReference;
     name: string;
     display: string;
+    uid: string;
+    path: string;
   }[];
+  type dataObj = {
+    ref: StorageReference;
+    name: string;
+    display: string;
+    uid: string;
+    path: string;
+  };
   // create array which will hold the data
   let data: data = [];
   async function getFiles() {
@@ -25,7 +42,8 @@
     data = await getAll();
   }
   async function getAll() {
-    let files: { name: string; display: string }[] = [];
+    let files: { name: string; display: string; uid: string; path: string }[] =
+      [];
     // get reference to files
     const dir = ref(storage, "files");
     // get all files
@@ -41,7 +59,12 @@
         const snapshot = await getDocs(queryFiles);
         // push data to files from firestore array
         snapshot.forEach((n) => {
-          files.push({ name: n.data().name, display: n.data().display });
+          files.push({
+            name: n.data().name,
+            display: n.data().display,
+            uid: n.data().uid,
+            path: n.data().path,
+          });
         });
       }
       // get path
@@ -55,6 +78,8 @@
           ref: refFile,
           name: files[index].name,
           display: files[index].display,
+          uid: files[index].uid,
+          path: files[index].path,
         },
       ];
       index++;
@@ -65,6 +90,23 @@
   function copy(text: string) {
     // copy link
     navigator.clipboard.writeText(text);
+  }
+  async function deleteImage(d: dataObj) {
+    // delete the refrence from the storage bucket
+    deleteObject(d.ref);
+    // query and delete the document with the same path in firestore
+    const q = query(collection(db, "files"), where("path", "==", d.path));
+    const querySnapshot = await getDocs(q);
+    let docRef: any = "";
+    querySnapshot.forEach((doc) => {
+      docRef = doc.ref;
+    });
+    deleteDoc(docRef);
+    // delete the item from the array
+    let index = data.indexOf(d);
+    if (index > -1) {
+      data = data.filter((i) => i !== d);
+    }
   }
   getFiles();
 </script>
@@ -107,23 +149,35 @@
                 <p class="card-title">{d.name}</p>
                 <p class="text-lg">by {d.display}</p>
                 {#await getDownloadURL(d.ref) then url}
-                  <div class="flex w-full justify-between">
+                  <div class="flex w-full justify-around">
                     <div class="tooltip" data-tip="Copy To Clipboard">
                       <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                       <button
                         on:click={() => {
                           copy(url);
                         }}
-                        class=" btn btn-outline btn-primary text-center"
+                        class=" btn btn-outline btn-primary text-center mr-3"
                       >
                         Copy
                       </button>
                     </div>
+                    {#if $user !== null}
+                      {#if $user.uid == d.uid}
+                        <div class="tooltip" data-tip="Delete Item">
+                          <button
+                            class="btn btn-error btn-outline mr-3"
+                            on:click={() => {
+                              deleteImage(d);
+                            }}>Delete</button
+                          >
+                        </div>
+                      {/if}
+                    {/if}
                     <a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      class="btn tooltip btn-outline flex items-center"
+                      class="btn tooltip btn-outline flex items-center mr-3"
                       data-tip="Download">Download</a
                     >
                   </div>
